@@ -9,7 +9,7 @@ router.get ('/users', (req, res) => {
   .catch (err => res.send(err))
 })
 
-router.get('users/:id', (req,res) => {
+router.get('/users/:id', (req,res) => {
   const { id } = req.params
   readFile(jsonUsersPath)
   .then (data => {
