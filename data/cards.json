@@ -310,9 +310,7 @@
     "createdAt": "2019-07-14T08:12:38.137Z"
   },
   {
-    "likes": [
-
-    ],
+    "likes": [],
     "_id": "5d42ec5529a31b001ff069d3",
     "name": "picture",
     "link": "https://pictures.s3.yandex.net/frontend-developer/cards-compressed/zheltukhin-island.jpg",
@@ -345,9 +343,7 @@
     "createdAt": "2019-08-01T14:05:19.741Z"
   },
   {
-    "likes": [
-
-    ],
+    "likes": [],
     "_id": "5d42f21f29a31b001ff069d5",
     "name": "Barcelona",
     "link": "https://unsplash.com/photos/s2q1_cxLHSE",
