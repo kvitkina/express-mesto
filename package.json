@@ -2,7 +2,7 @@
   "name": "express-mesto",
   "version": "1.0.0",
   "description": "Проект Mesto фронтенд и бэкенд",
-  "main": "index.js",
+  "main": "app.js",
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js"

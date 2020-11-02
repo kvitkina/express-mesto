@@ -17,12 +17,12 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true,
     validate: {
-      validator: function(v) {
+      validator(v) {
         return /^(https?:\/\/)?([\w-]{1,32}\.[\w-]{1,32})[^\s@]*$/.test(v);
       },
-      message: 'Здесь должен быть валидный url-адрес'
+      message: 'Здесь должен быть валидный url-адрес',
     },
-  }
+  },
 });
 
 module.exports = mongoose.model('user', userSchema);
