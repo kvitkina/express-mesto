@@ -34,7 +34,7 @@ module.exports.createUser = (req, res) => {
     .catch((err) => {
       if (err.name === 'ValidationError') {
         const errorList = Object.keys(err.errors);
-        const messages = errorList.map((item) => err.errors[item].properties.message);
+        const messages = errorList.map((item) => err.errors[item].message);
         res.status(400).send({ message: `Ошибка валидации: ${messages.join(' ')}` });
       } else {
         res.status(500).send({ message: 'Ошибка на сервере' });
