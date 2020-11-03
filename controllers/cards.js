@@ -1,5 +1,4 @@
 const Card = require('../models/card');
-const User = require('../models/user');
 
 module.exports.getCards = (req, res) => {
   Card.find({})
@@ -26,7 +25,7 @@ module.exports.createCard = (req, res) => {
 
 module.exports.deleteCard = (req, res) => {
   const { cardId } = req.params;
-  User.findByIdAndRemove(cardId)
+  Card.findByIdAndRemove(cardId)
     .orFail(() => {
       const err = new Error('Карточка не найдена');
       err.statusCode = 404;
