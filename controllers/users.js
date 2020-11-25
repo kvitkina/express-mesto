@@ -3,7 +3,6 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const User = require('../models/user');
 const { SOLT_ROUND } = require('../configs/index');
-const user = require('../models/user');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
 
@@ -35,8 +34,8 @@ module.exports.getUserById = (req, res) => {
 };
 
 module.exports.getOwnerInfo = (req, res) => {
+  console.log(req.user);
   const { _id } = req.user;
-  console.log(_id);
   User.findById(_id)
     .orFail(() => {
       const err = new Error('Пользователь не найден');
@@ -86,15 +85,9 @@ module.exports.createUser = (req, res) => {
 
 module.exports.login = (req, res) => {
   const { email, password } = req.body;
-  User.findOne({ email }).select('+password')
+  return User.findUserByCredentials(email, password)
     .then((user) => {
-      if (!user) {
-        return Promise.reject(new Error('Неправильные почта или пароль'));
-      }
-      return bcrypt.compare(password, user.password);
-    })
-    .then((matched) => {
-      if (matched) {
+      if (user) {
         const token = jwt.sign(
           { _id: user._id },
           NODE_ENV === 'production' ? JWT_SECRET : 'dev-secret',
