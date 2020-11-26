@@ -5,51 +5,48 @@ const User = require('../models/user');
 const { SOLT_ROUND } = require('../configs/index');
 
 const { NODE_ENV, JWT_SECRET } = process.env;
+const NotFoundError = require('../errors/not-found-err');
+const BadRequestError = require('../errors/bad-request-err');
+const UnauthorizedError = require('../errors/unauthorized-err');
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   User.find()
     .then((users) => res.send(users))
-    .catch((err) => res.status(500).send(err));
+    .catch(next);
 };
 
 module.exports.getUserById = (req, res) => {
   const { id } = req.params;
   User.findById(id)
     .orFail(() => {
-      const err = new Error('Пользователь не найден');
-      err.statusCode = 404;
-      throw err;
+      throw new NotFoundError('Нет пользователя с таким id');
     })
     .then((user) => res.send(user))
     // eslint-disable-next-line consistent-return
     .catch((err) => {
       if (err.kind === 'ObjectId') {
-        return res.status(400).send({ message: 'Не валидный id' });
+        throw new BadRequestError('Не валидный id');
       }
       if (err.statusCode === 404) {
-        return res.status(404).send({ message: 'Пользователь не найден' });
+        throw new NotFoundError('Нет пользователя с таким id');
       }
       res.status(500).send(err);
     });
 };
 
 module.exports.getOwnerInfo = (req, res) => {
-  console.log(req.user);
   const { _id } = req.user;
   User.findById(_id)
     .orFail(() => {
-      const err = new Error('Пользователь не найден');
-      err.statusCode = 404;
-      throw err;
+      throw new NotFoundError('Нет пользователя с таким id');
     })
     .then((user) => res.status(200).send(user))
-  // eslint-disable-next-line consistent-return
     .catch((err) => {
       if (err.kind === 'ObjectId') {
-        return res.status(400).send({ message: 'Не валидный id' });
+        throw new BadRequestError('Не валидный id');
       }
       if (err.statusCode === 404) {
-        return res.status(404).send({ message: 'Пользователь не найден' });
+        throw new NotFoundError('Нет пользователя с таким id');
       }
       res.status(500).send(err);
     });
@@ -98,6 +95,6 @@ module.exports.login = (req, res) => {
       return Promise.reject(new Error('Неправильные почта или пароль'));
     })
     .catch((err) => {
-      res.status(401).send({ message: err.message });
+      throw new UnauthorizedError('Ошибка авторизации');
     });
 };

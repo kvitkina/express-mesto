@@ -1,4 +1,5 @@
 const router = require('express').Router();
+const { celebrate, Joi } = require('celebrate');
 const { getUsers, getUserById, getOwnerInfo } = require('../controllers/users');
 
 router.get('/users', getUsers);
