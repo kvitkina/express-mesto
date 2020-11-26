@@ -15,7 +15,7 @@ module.exports.getUsers = (req, res, next) => {
     .catch(next);
 };
 
-module.exports.getUserById = (req, res) => {
+module.exports.getUserById = (req, res, next) => {
   const { id } = req.params;
   User.findById(id)
     .orFail(() => {
@@ -25,16 +25,18 @@ module.exports.getUserById = (req, res) => {
     // eslint-disable-next-line consistent-return
     .catch((err) => {
       if (err.kind === 'ObjectId') {
-        throw new BadRequestError('Не валидный id');
+        const validationError = new BadRequestError('Не валидный id');
+        next(validationError);
       }
       if (err.statusCode === 404) {
-        throw new NotFoundError('Нет пользователя с таким id');
+        const notFoundError = new NotFoundError('Карточка не найдена');
+        next(notFoundError);
       }
-      res.status(500).send(err);
+      next(err);
     });
 };
 
-module.exports.getOwnerInfo = (req, res) => {
+module.exports.getOwnerInfo = (req, res, next) => {
   const { _id } = req.user;
   User.findById(_id)
     .orFail(() => {
@@ -43,16 +45,18 @@ module.exports.getOwnerInfo = (req, res) => {
     .then((user) => res.status(200).send(user))
     .catch((err) => {
       if (err.kind === 'ObjectId') {
-        throw new BadRequestError('Не валидный id');
+        const validationError = new BadRequestError('Не валидный id');
+        next(validationError);
       }
       if (err.statusCode === 404) {
-        throw new NotFoundError('Нет пользователя с таким id');
+        const notFoundError = new NotFoundError('Карточка не найдена');
+        next(notFoundError);
       }
-      res.status(500).send(err);
+      next(err);
     });
 };
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const {
     name, about, avatar, email, password,
   } = req.body;
@@ -71,16 +75,15 @@ module.exports.createUser = (req, res) => {
     .then((user) => res.status(201).send({ _id: user._id }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        const errorList = Object.keys(err.errors);
-        const messages = errorList.map((item) => err.errors[item].message);
-        res.status(400).send({ message: `Ошибка валидации: ${messages.join(' ')}` });
+        const validationError = new BadRequestError('Ошибка валидации');
+        next(validationError);
       } else {
-        res.status(500).send({ message: 'Ошибка на сервере' });
+        next(err);
       }
     });
 };
 
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body;
   return User.findUserByCredentials(email, password)
     .then((user) => {
@@ -95,6 +98,7 @@ module.exports.login = (req, res) => {
       return Promise.reject(new Error('Неправильные почта или пароль'));
     })
     .catch((err) => {
-      throw new UnauthorizedError('Ошибка авторизации');
+      const unauthorizedError = new UnauthorizedError('Ошибка авторизации');
+      next(unauthorizedError);
     });
 };

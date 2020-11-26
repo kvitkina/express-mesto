@@ -5,12 +5,14 @@ const mongoose = require('mongoose');
 const app = express();
 const PORT = 3000;
 const bodyParser = require('body-parser');
+const { celebrate, Joi } = require('celebrate');
 const { errors } = require('celebrate');
 const cardsRoutes = require('./routes/cards.js');
 const usersRoutes = require('./routes/users.js');
 const { createUser, login } = require('./controllers/users');
 const auth = require('./middlewares/auth');
 const NotFoundError = require('./errors/not-found-err');
+const { requestLogger, errorLogger } = require('./middlewares/logger');
 
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -21,8 +23,21 @@ mongoose.connect('mongodb://localhost:27017/mestodb', {
   useFindAndModify: false,
   useUnifiedTopology: true,
 });
-app.post('/signin', login);
-app.post('/signup', createUser);
+app.use(requestLogger); // логгер запросов
+
+// обработчики роутов
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required().min(6),
+  }),
+}), login);
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().email(),
+    password: Joi.string().required().min(6),
+  }),
+}), createUser);
 
 app.use(auth); // защита роутов
 
@@ -31,6 +46,8 @@ app.use('/', cardsRoutes);
 app.use('*', (req, res) => {
   throw new NotFoundError('Запрашиваемый ресурс не найден');
 });
+
+app.use(errorLogger); // логгер ошибок
 
 // обработчики ошибок
 app.use(errors()); // обработчик ошибок celebrate
