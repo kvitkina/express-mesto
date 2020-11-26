@@ -16,16 +16,15 @@ module.exports.createCard = (req, res, next) => {
     .then((card) => res.send(card))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        const errorList = Object.keys(err.errors);
-        const messages = errorList.map((item) => err.errors[item].message);
-        res.status(400).send({ message: `Ошибка валидации: ${messages.join(' ')}` });
+        const validationError = new BadRequestError('Ошибка валидации');
+        next(validationError);
       } else {
-        res.status(500).send({ message: 'Ошибка на сервере' });
+        next(err);
       }
     });
 };
 
-module.exports.deleteCard = (req, res) => {
+module.exports.deleteCard = (req, res, next) => {
   const { cardId } = req.params;
   const userId = req.user._id;
   Card.findById(cardId)
@@ -34,19 +33,20 @@ module.exports.deleteCard = (req, res) => {
     })
     .then((card) => {
       if (card.owner.toString() === userId) {
-        Card.findByIdAndRemove(cardId);
-        return res.status(200).send(card);
+        Card.findByIdAndRemove(cardId).then((card) => res.status(200).send(card));
+      } else {
+        throw new BadRequestError('Нельзя удалять чужую карточку');
       }
-      throw new BadRequestError('Нельзя удалять чужую карточку');
     })
-
     .catch((err) => {
       if (err.kind === 'ObjectId') {
-        throw new BadRequestError('Не валидный id');
+        const validationError = new BadRequestError('Не валидный id');
+        next(validationError);
       }
       if (err.statusCode === 404) {
-        throw new NotFoundError('Карточка не найдена');
+        const notFoundError = new NotFoundError('Карточка не найдена');
+        next(notFoundError);
       }
-      res.status(500).send(err);
+      next(err);
     });
 };
